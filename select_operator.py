@@ -4,7 +4,7 @@ import random
 import shutil
 import subprocess
 import numpy as np
-
+import argparse
 from datetime import datetime, timedelta
 
 from sqlalchemy import create_engine, SmallInteger, Numeric, Float, Integer, String, BigInteger, Boolean, Date, DateTime, MetaData, ForeignKey, Text, Time
@@ -14,11 +14,11 @@ from sqlalchemy.sql.sqltypes import String, DateTime, NullType
 
 from relmodel import Table, Routine, Column, Op
 
+
+
 class CreateSelectQueries(object):
-    def __init__(self):
-        self.engine = create_engine('postgresql://postgres:okok@localhost:5432/dvdrental')
-        #r = self.engine.execute("select version()")
-        # self.version = str(r[0][0])
+    def __init__(self, uri):
+        self.engine = create_engine(uri)
         r = self.engine.execute("SHOW server_version_num")
         for row in r:
            version_num = int(int(row[0]))
@@ -152,12 +152,24 @@ class CreateSelectQueries(object):
                  assert(t)
                  proc.argtypes.append(t)
         print("done")
+    def runAll(self):
+        self.loadTypes()
+        self.loadTables()
+        self.loadColumnsAndConstraints()
+        self.loadOperators()
+        self.loadRoutines()
+        self.loadRoutinesParameters()
+        self.loadAggregates()
+        self.loadAggregateParameters()
 
 
 def main():
-    print("Im main")
-    csq = CreateSelectQueries()
-    print("heheh")
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-d", "--DBURI", required=True,
+	help="DB URI to execute select queries")
+    args = vars(ap.parse_args())
+
+    csq = CreateSelectQueries(args['DBURI'])
     csq.loadTypes()
     csq.loadTables()
     csq.loadColumnsAndConstraints()
